@@ -1,0 +1,117 @@
+/* Styles communs */
+
+/* Appliquer la couleur de fond à tout le corps */
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color); /* Couleur du texte par défaut */
+    margin: 0; /* Supprimer les marges par défaut */
+    padding: 0; /* Supprimer les paddings par défaut */
+  }
+/* Structure commune */
+.block-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 10px;
+  }
+  
+  .block-label {
+    font-size: var(--label-font-size);
+    margin-bottom: var(--label-margin-bottom);
+    font-weight: var(--text-weight);
+    color: var(--text-color);
+  }
+  
+  .block-required {
+    color: red;
+  }
+  
+  .block {
+    width: var(--block-width);
+    height: var(--block-height);
+    border: 2px solid var(--border-color);
+    border-radius: var(--block-border-radius);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    background-color: var(--bg-color);
+  }
+  
+  .block-icon {
+    font-size: 3rem;
+    color: var(--icon-color);
+    transition: transform 0.3s ease;
+  }
+  
+  .block-icon.hovered {
+    transform: scale(1.2);
+  }
+  .block-error {
+    color: red;
+    font-size: 12px;
+    margin-top: 5px;
+    text-align: center;
+  }
+  
+  .block-input {
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+  }
+  
+  .block-file-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: var(--file-info-font-size);
+    line-height: var(--file-info-line-height);
+    color: var(--text-color);
+  }
+  
+/* Styles existants pour la croix */
+.close-icon {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    cursor: pointer;
+    color: red;
+    font-size: 1.5rem;
+    transition: color 0.3s ease;
+  
+    /* Ajout pour la mise en avant */
+    z-index: 10; /* Toujours au-dessus des autres éléments */
+    background-color: var(--bg-color); /* Optionnel : améliorer la visibilité */
+    border-radius: 50%; /* Optionnel : pour un effet rond */
+  }
+  
+  /* Effet hover sur la croix */
+  .close-icon:hover {
+    color: darkred;
+  }
+
+  .check-icon {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    color: green;
+    font-size: 24px;
+    display: none; /* Par défaut, cachée */
+    z-index: 10;
+  }
+  
+  .block-file-info + .check-icon {
+    display: block; /* Affiche la coche uniquement si un fichier est uploadé */
+  }
+  
+  
+  
