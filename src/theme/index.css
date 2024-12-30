@@ -11,7 +11,7 @@ body {
 .block-container {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    /* align-items: center; */
     margin: 10px;
   }
   
@@ -70,7 +70,7 @@ body {
   .block-file-info {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: left;
     justify-content: center;
     text-align: center;
     font-size: var(--file-info-font-size);
@@ -113,5 +113,24 @@ body {
     display: block; /* Affiche la coche uniquement si un fichier est uploadé */
   }
   
-  
+/* Styles des onglets */
+.MuiTab-root {
+  color: var(--inactive-tab-color); /* Couleur des onglets non sélectionnés */
+}
+
+.MuiTab-root.Mui-selected {
+  color: var(--accent-color); /* Couleur de l'onglet sélectionné */
+}
+
+.MuiTabs-indicator {
+  background-color: var(--accent-color); /* Indicateur de l'onglet actif */
+}
+
+
+.MuiTab-root:hover {
+  color: var(--accent-color); /* Couleur au survol */
+  opacity: 1; /* Augmenter l'opacité au survol */
+  cursor: pointer; /* Ajout du curseur pointeur pour indiquer qu'il est cliquable */
+}
+
   

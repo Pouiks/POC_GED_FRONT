@@ -1,14 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import CloseIcon from "@mui/icons-material/Close";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 const ALLOWED_FILE_TYPES = ["application/pdf", "image/jpeg", "image/jpg", "image/png"];
 
-const DocumentBlock = ({ id, label, isRequired, onUpload }) => {
-  const [uploadedFile, setUploadedFile] = useState(null);
+const DocumentBlock = ({ id, label, isRequired, initialFile, onUpload }) => {
+  const [uploadedFile, setUploadedFile] = useState(initialFile || null); // Si initialFile est défini, on l'affiche
   const [isHovered, setIsHovered] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (initialFile) {
+      setUploadedFile(initialFile);
+    }
+  }, [initialFile]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -19,6 +25,7 @@ const DocumentBlock = ({ id, label, isRequired, onUpload }) => {
         onUpload(id, null);
         return;
       }
+
       setError(null);
       const mimeType = file.type.split("/").pop().toUpperCase();
       const size =
@@ -28,7 +35,7 @@ const DocumentBlock = ({ id, label, isRequired, onUpload }) => {
 
       const fileDetails = { name: file.name, mimeType, size };
       setUploadedFile(fileDetails);
-      onUpload(id, fileDetails);
+      onUpload(id, fileDetails); // Mettre à jour la valeur
     }
   };
 
@@ -40,7 +47,7 @@ const DocumentBlock = ({ id, label, isRequired, onUpload }) => {
 
   return (
     <div className="block-container">
-      <label className="block-label">
+      <label className="block-label" style={{fontWeight: "bold"}}>
         {label} {isRequired && <span className="block-required">*</span>}
       </label>
       <div
@@ -60,19 +67,24 @@ const DocumentBlock = ({ id, label, isRequired, onUpload }) => {
               onClick={handleDelete}
               titleAccess="Supprimer le fichier"
             />
-            {/* Ajout de l'icône de validation */}
-            <CheckCircleIcon className="check-icon"titleAccess="Document valide" />
+            <CheckCircleIcon
+              className="check-icon"
+              titleAccess="Document valide"
+            />
           </>
         ) : (
-          <UploadFileIcon
-            className={`block-icon ${isHovered ? "hovered" : ""}`}
-          />
+          <>
+            <UploadFileIcon
+              className={`block-icon ${isHovered ? "hovered" : ""}`}
+            />
+            <input
+              type="file"
+              className="block-input"
+              onChange={handleFileChange}
+              accept=".pdf,.jpeg,.jpg,.png"
+            />
+          </>
         )}
-        <input
-          type="file"
-          className="block-input"
-          onChange={handleFileChange}
-        />
       </div>
       {error && <p className="block-error">{error}</p>}
     </div>

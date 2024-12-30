@@ -1,0 +1,18 @@
+export default {
+  Locataire: "Locataire",
+  Garants: "Garants",
+  Representant_legal: "Représentant légal",
+  Etudiant: "Justificatif étudiant",
+  piece_identite: "Pièce d'identité",
+  justificatif_domicile: "Justificatif de domicile",
+  attestation_prise_en_charge: "Attestation de prise en charge",
+  bulletins_de_salaire: "Bulletins de salaire",
+  contrat_travail: "Contrat de travail",
+  avis_imposition: "Avis d'imposition",
+  rib: "RIB",
+  kbis_siret: "KBIS/SIRET",
+  justificatif_urssaf: "Justificatif URSSAF",
+  attestation_pension: "Attestation de pension",
+  documents_for_etudiant: "Justificatif étudiant",
+  submit_documents: "Envoyer les documents",
+};

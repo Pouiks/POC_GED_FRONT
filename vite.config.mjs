@@ -9,5 +9,10 @@ export default defineConfig({
     hmr: {
       overlay: true, // Affiche les erreurs sur la page
     },
+    resolve: {
+      alias: {
+        "jwt-decode": "/node_modules/jwt-decode/build/jwt-decode.esm.js",
+      },
+    },
   },
 });
