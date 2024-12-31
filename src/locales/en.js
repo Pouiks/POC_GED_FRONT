@@ -15,5 +15,6 @@ export default {
   attestation_pension: "Pension Certificate",
   documents_for_etudiant: "Proof of Student",
   submit_documents: "Submit documents",
-
+  browse_file: "Browse file",
+  here: "Here"
 };

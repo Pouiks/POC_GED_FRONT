@@ -38,17 +38,17 @@ body {
     cursor: pointer;
     overflow: hidden;
     transition: background-color 0.3s ease, border-color 0.3s ease;
-    background-color: var(--bg-color);
+    background-color: var(--primary-color);
   }
   
   .block-icon {
     font-size: 3rem;
-    color: var(--icon-color);
     transition: transform 0.3s ease;
   }
   
   .block-icon.hovered {
-    transform: scale(1.2);
+    transform: scale(1.5);
+    border: 2px solid black;
   }
   .block-error {
     color: red;
@@ -75,7 +75,6 @@ body {
     text-align: center;
     font-size: var(--file-info-font-size);
     line-height: var(--file-info-line-height);
-    color: var(--text-color);
   }
   
 /* Styles existants pour la croix */
@@ -90,7 +89,7 @@ body {
   
     /* Ajout pour la mise en avant */
     z-index: 10; /* Toujours au-dessus des autres éléments */
-    background-color: var(--bg-color); /* Optionnel : améliorer la visibilité */
+    background-color: 'red'; /* Optionnel : améliorer la visibilité */
     border-radius: 50%; /* Optionnel : pour un effet rond */
   }
   
@@ -133,4 +132,74 @@ body {
   cursor: pointer; /* Ajout du curseur pointeur pour indiquer qu'il est cliquable */
 }
 
+.file-upload-form {
+  width: fit-content;
+  height: fit-content;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--text-color);
+
   
+}
+.file-upload-label input {
+  display: none;
+}
+.file-upload-label {
+  cursor: pointer;
+  background-color: var(--upload-color);
+  padding: 10px 40px;
+  border-radius: 40px;
+  border: 2px dashed rgb(82, 82, 82);
+  box-shadow: 0px 0px 200px -50px rgba(0, 0, 0, 0.719);
+}
+.file-upload-design {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.browse-button {
+  background-color: var(--upload-background-button-color);
+  padding: 5px 15px;
+  border-radius: 10px;
+  color: var(--upload-background-text-color);
+  transition: all 0.3s;
+}
+.browse-button:hover {
+  background-color: rgb(14, 14, 14);
+}
+.block-file-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.close-icon {
+  cursor: pointer;
+  color: red;
+}
+.check-icon {
+  color: green;
+}
+.block-required {
+  color: red;
+}
+.file-upload-label svg {
+  height: 50px;
+  width: 50px;
+  margin-bottom: 20px;
+  fill: rgb(82, 82, 82);
+  transition: transform 0.3s ease;
+}
+
+.file-upload-label:hover svg {
+  transform: scale(1.1); /* Effet léger de zoom au survol */
+}
+.MuiButton-contained{
+  background-color: red;
+}
+.variant-containedColor{
+  background-color: red !important;
+}

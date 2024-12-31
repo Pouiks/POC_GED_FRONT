@@ -6,7 +6,7 @@ const mapping = {
         "contrat_travail",
         "avis_imposition",
         "justificatif_domicile",
-        "rib"
+        "rib",
       ],
       Fonctionnaire: [
         "piece_identite",
@@ -15,7 +15,7 @@ const mapping = {
         "avis_imposition",
         "justificatif_domicile",
         "rib",
-        "attestation_de_fonction"
+        "attestation_de_fonction",
       ],
       Travailleur_indépendant: [
         "piece_identite",
@@ -23,37 +23,37 @@ const mapping = {
         "kbis_siret",
         "justificatif_urssaf",
         "justificatif_domicile",
-        "rib"
+        "rib",
       ],
       Étudiant: [
         "piece_identite",
         "certificat_scolarite",
         "justificatif_domicile",
-        "rib"
+        "rib",
       ],
       "Chômeur ou allocataire": [
         "piece_identite",
         "attestation_pole_emploi",
         "avis_imposition",
-        "justificatif_domicile"
+        "justificatif_domicile",
       ],
       Mineur: [
         "certificat_naissance",
         "justificatif_scolaire",
-        "rib_representant_legal"
+        "rib_representant_legal",
       ],
       Retraité: [
         "piece_identite",
         "avis_imposition",
         "attestation_pension",
         "justificatif_domicile",
-        "rib"
+        "rib",
       ],
       "Étranger (hors UE)": [
         "piece_identite",
         "titre_sejour",
-        "documents_specifiques"
-      ]
+        "documents_specifiques",
+      ],
     },
     Garant: {
       "Salarié (secteur privé)": [
@@ -62,7 +62,7 @@ const mapping = {
         "contrat_travail",
         "avis_imposition",
         "justificatif_domicile",
-        "rib"
+        "rib",
       ],
       Fonctionnaire: [
         "piece_identite",
@@ -71,28 +71,28 @@ const mapping = {
         "avis_imposition",
         "justificatif_domicile",
         "rib",
-        "attestation_de_fonction"
+        "attestation_de_fonction",
       ],
       Travailleur_indépendant: [
         "piece_identite",
         "avis_imposition",
         "releves_bancaires",
         "justificatif_domicile",
-        "attestation_revenus"
+        "attestation_revenus",
       ],
       Étudiant: [
         "piece_identite",
         "bulletins_de_salaire",
         "avis_imposition",
         "justificatif_domicile",
-        "rib"
+        "rib",
       ],
       Chômeur_allocataire: [
         "piece_identite",
         "bulletins_de_salaire",
         "avis_imposition",
         "justificatif_domicile",
-        "rib"
+        "rib",
       ],
       Mineur: [],
       Retraité: [
@@ -100,21 +100,21 @@ const mapping = {
         "avis_imposition",
         "attestation_pension",
         "justificatif_domicile",
-        "rib"
+        "rib",
       ],
       Étranger: [
         "piece_identite",
         "titre_sejour",
-        "documents_specifiques"
-      ]
+        "documents_specifiques",
+      ],
     },
     RepresentantLegal: {
       default: [
         "piece_identite",
         "justificatif_domicile",
         "attestation_prise_en_charge",
-        "releves_bancaires"
-      ]
-    }
+        "releves_bancaires",
+      ],
+    },
   };
-  
+export default mapping;  

@@ -32,8 +32,6 @@ const ThemeProvider = ({ children }) => {
     Object.keys(theme).forEach((key) => {
       root.style.setProperty(`--${key}`, theme[key]);
     });
-    console.log("Theme in ThemeProvider:", theme);
-
   }, [theme]);
 
   const toggleTheme = () => {

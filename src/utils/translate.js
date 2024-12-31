@@ -15,5 +15,15 @@ export const setLanguage = (lang) => {
 };
 
 export const translate = (key) => {
-  return translations[key] || key; // Renvoie la clé elle-même si aucune traduction n'est trouvée
+  if (!key) return key;
+
+  // Normalisation de la clé pour supprimer les accents
+  const normalizedKey = key
+    .normalize("NFD") // Sépare les accents des lettres
+    .replace(/[\u0300-\u036f]/g, "") // Supprime les accents
+    .replace(/[^a-zA-Z0-9_]/g, "_") // Remplace les caractères spéciaux par des _
+    .toLowerCase();
+
+  return translations[normalizedKey] || key;
 };
+

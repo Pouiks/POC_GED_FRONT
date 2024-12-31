@@ -2,21 +2,27 @@ import React, { useEffect, useState } from "react";
 import UploadPageImage from "../components/UploadPageImage";
 import DocumentBlock from "../components/DocumentBlock";
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
+import Accordion from "@mui/material/Accordion";
+import AccordionSummary from "@mui/material/AccordionSummary";
+import AccordionDetails from "@mui/material/AccordionDetails";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import Typography from "@mui/material/Typography";
 import { useTheme } from "../context/ThemeContext";
 import { translate, setLanguage } from "../utils/translate";
+import CustomButton from "../components/CustomButton";
 
 const UploadPage = () => {
   const { theme, toggleTheme } = useTheme();
-  const [tabs, setTabs] = useState([]); // Onglets pour chaque locataire
-  const [activeTab, setActiveTab] = useState(0); // Onglet actif
-  const [error, setError] = useState(null); // Gestion des erreurs
-  const [currentLanguage, setCurrentLanguage] = useState("fr"); // Langue actuelle
-  const [decodedData, setDecodedData] = useState(null); // Données décodées une fois pour éviter de les perdre
+  const [tabs, setTabs] = useState([]);
+  const [activeTab, setActiveTab] = useState(0);
+  const [currentLanguage, setCurrentLanguage] = useState("fr");
+  const [decodedData, setDecodedData] = useState(null);
+  const [completionStatus, setCompletionStatus] = useState({});
+  const [expandedAccordion, setExpandedAccordion] = useState(0);
 
-  // Injecter les variables de thème
   useEffect(() => {
     if (theme) {
       Object.entries(theme).forEach(([key, value]) => {
@@ -25,70 +31,84 @@ const UploadPage = () => {
     }
   }, [theme]);
 
-  // Décodage du token
   const decodeToken = (token) => {
-    const [header, payload, signature] = token.split(".");
-    if (!payload) throw new Error("Format du token invalide");
+    const [header, payload] = token.split(".");
+    if (!payload) throw new Error("Invalid token format");
     return JSON.parse(atob(payload));
   };
 
-  // Construction des onglets et sections
+  const initializeCompletionStatus = (tabsData) => {
+    const status = {};
+    tabsData.forEach((tab) => {
+      tab.sections.forEach((section) => {
+        status[section.title] = 0; // Toujours à 0 au chargement
+      });
+    });
+    return status;
+  };
+
   const buildTabsFromData = (data) => {
     return data.map((locataire, index) => {
       const locataireId = `Locataire_${index + 1}`;
       const locataireBlocks = [];
-      const garantBlocks = [];
-      const representantLegalBlocks = [];
-  
-      Object.entries(locataire).forEach(([key, value]) => {
-        if (key === locataireId) {
-          // Documents du locataire
-          locataireBlocks.push({
-            id: key,
-            label: translate(`documents_for_${value.toLowerCase().replace(/ /g, "_")}`),
-            required: true,
-            file: null,
-          });
-        } else if (key.startsWith(`${locataireId}_garant`) && value !== null) {
-          // Documents des garants
-          Object.entries(value).forEach(([docKey, docValue]) => {
-            if (docValue === null) {
-              garantBlocks.push({
-                id: `${key}-${docKey}`,
-                label: translate(docKey), // Traduction ici
-                required: true,
-                file: null,
-              });
-            }
-          });
-        } else if (key === `${locataireId}_representant_legal` && value !== null) {
-          // Documents du représentant légal
-          Object.entries(value).forEach(([docKey, docValue]) => {
-            if (docValue === null) {
-              representantLegalBlocks.push({
-                id: `${key}-${docKey}`,
-                label: translate(docKey), // Traduction ici
-                required: true,
-                file: null,
-              });
-            }
+      const garantSections = [];
+      let representantLegalSection = null;
+
+      locataireBlocks.push({
+        id: locataireId,
+        label: translate(`documents_for_${locataire[locataireId]?.toLowerCase().replace(/ /g, "_")}`),
+        required: true,
+        file: null,
+      });
+
+      if (locataire[`${locataireId}_mineur`]) {
+        const representantLegalDocs = Object.entries(
+          locataire[`${locataireId}_representant_legal`] || {}
+        ).map(([docKey, docValue]) => ({
+          id: `${locataireId}_representant_legal-${docKey}`,
+          label: translate(docKey),
+          required: true,
+          file: docValue || null,
+        }));
+
+        representantLegalSection = {
+          title: translate("Representant_legal"),
+          blocks: representantLegalDocs,
+        };
+      }
+
+      for (let i = 1; i <= 2; i++) {
+        const garantKey = `${locataireId}_garant_${i}`;
+        const garant = locataire[garantKey];
+
+        if (garant) {
+          const garantDocs = Object.entries(garant)
+            .filter(([docKey]) => docKey !== "moral" && docKey !== "physique")
+            .map(([docKey, docValue]) => ({
+              id: `${garantKey}-${docKey}`,
+              label: translate(docKey),
+              required: true,
+              file: docValue || null,
+            }));
+
+          garantSections.push({
+            title: `${translate("Garants")} ${i}`,
+            blocks: garantDocs,
           });
         }
-      });
-  
+      }
+
       return {
         title: `${translate("Locataire")} ${index + 1}`,
         sections: [
           { title: translate("Locataire"), blocks: locataireBlocks },
-          { title: translate("Garants"), blocks: garantBlocks },
-          { title: translate("Representant_legal"), blocks: representantLegalBlocks },
+          ...(representantLegalSection ? [representantLegalSection] : []),
+          ...garantSections,
         ],
       };
     });
   };
-  
 
-  // Initialisation des onglets
   useEffect(() => {
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
@@ -97,159 +117,162 @@ const UploadPage = () => {
     if (token) {
       try {
         const decoded = decodeToken(token);
-        setDecodedData(decoded); // Stocker les données décodées
+        setDecodedData(decoded);
         const dynamicTabs = buildTabsFromData(decoded.Data || []);
         setTabs(dynamicTabs);
+
+        // Initialiser le compteur de remplissage pour chaque section
+        const initialStatus = initializeCompletionStatus(dynamicTabs);
+        setCompletionStatus(initialStatus);
       } catch (err) {
-        console.error("Erreur lors du décodage :", err);
-        setError("Token invalide ou expiré.");
+        console.error("Token decoding error:", err);
       }
-    } else {
-      setError("Aucun token trouvé dans l'URL.");
     }
   }, []);
 
-  const handleUpload = (blockId, file) => {
-    const fileExtension = file.type.split("/")[1].toLowerCase();
-    const allowedTypes = ["pdf", "jpeg", "jpg", "png"];
-
-    if (!allowedTypes.includes(fileExtension)) {
-      alert(
-        `Format non autorisé (${fileExtension}). Formats autorisés : PDF, JPEG, JPG, PNG.`
-      );
-      return;
-    }
-
-    setTabs((prev) =>
-      prev.map((tab, tabIndex) =>
-        tabIndex === activeTab
-          ? {
-              ...tab,
-              sections: tab.sections.map((section) => ({
-                ...section,
-                blocks: section.blocks.map((block) =>
-                  block.id === blockId ? { ...block, file } : block
-                ),
-              })),
-            }
-          : tab
-      )
-    );
-  };
-
   const handleLanguageChange = () => {
     const newLanguage = currentLanguage === "fr" ? "en" : "fr";
-    setLanguage(newLanguage); // Mettre à jour la langue dans le contexte des traductions
-    setCurrentLanguage(newLanguage); // Mettre à jour l'état local
+    setLanguage(newLanguage);
+    setCurrentLanguage(newLanguage);
     if (decodedData) {
-      const updatedTabs = buildTabsFromData(decodedData.Data || []); // Reconstruire les onglets avec les données décodées
+      const updatedTabs = buildTabsFromData(decodedData.Data || []);
       setTabs(updatedTabs);
+
+      // Réinitialiser l'état en fonction de la nouvelle langue
+      const updatedStatus = initializeCompletionStatus(updatedTabs);
+      setCompletionStatus(updatedStatus);
     }
   };
 
-  const handleSubmit = () => {
-    const missingFiles = tabs.flatMap((tab) =>
-      tab.sections.flatMap((section) =>
-        section.blocks.filter((block) => block.required && !block.file)
-      )
-    );
+  const handleUpload = (sectionTitle, isUploaded) => {
+    setCompletionStatus((prev) => ({
+      ...prev,
+      [sectionTitle]: isUploaded
+        ? prev[sectionTitle] + 1
+        : Math.max(prev[sectionTitle] - 1, 0),
+    }));
+  };
 
-    if (missingFiles.length > 0) {
-      alert(
-        `Certains documents obligatoires ne sont pas remplis : ${missingFiles
-          .map((block) => block.label)
-          .join(", ")}`
-      );
-      return;
-    }
+  const getDocumentLabel = (filledCount, totalCount) => {
+    return totalCount === 1
+      ? `${filledCount}/${totalCount} document rempli`
+      : `${filledCount}/${totalCount} documents remplis`;
+  };
 
-    console.log("Données soumises :", tabs);
-    alert("Tous les documents ont été soumis avec succès !");
+  const isSectionComplete = (sectionTitle, totalDocs) => {
+    return completionStatus[sectionTitle] === totalDocs;
   };
 
   return (
     <Box display="flex" height="100vh">
       {/* Colonne pour l'image */}
-      <Box flex="1" bgcolor="var(--bg-color)" display="flex" justifyContent="center" alignItems="center">
+      <Box
+        sx={{
+          flex: "0 0 40%",
+          height: "100vh",
+          position: "sticky",
+          top: 0,
+          overflow: "hidden",
+          backgroundColor: "var(--primary-color)",
+        }}
+      >
         <UploadPageImage theme={theme} />
       </Box>
 
       {/* Colonne pour le contenu */}
-      <Box flex="2" padding="20px">
-        <Box display="flex" justifyContent="space-between">
-          <Button variant="contained" onClick={toggleTheme}>
-            {translate("toggle_theme")}
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleLanguageChange}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px", // Espace entre le drapeau et le texte
-            }}
-          >
-            <img
-              src={`/images/${currentLanguage === "fr" ? "fr" : "en"}.png`}
-              alt={currentLanguage === "fr" ? "Drapeau français" : "Drapeau britannique"}
-              style={{
-                width: "20px",
-                height: "15px",
-                borderRadius: "2px",
-                objectFit: "cover",
-              }}
-            />
-            {currentLanguage.toUpperCase()}
-          </Button>
-
+      <Box
+        sx={{
+          flex: 1,
+          height: "100vh",
+          overflowY: "auto",
+          padding: "20px",
+          backgroundColor: theme["bg-color"],
+        }}
+      >
+        <Box display="flex" justifyContent="space-between" mb={2}>
+          <CustomButton
+            isLanguageButton={false}
+            onClick={toggleTheme}
+          />
+          <CustomButton
+            isLanguageButton={true}
+            currentLanguage={currentLanguage}
+            onLanguageChange={handleLanguageChange}
+          />
         </Box>
 
         <Tabs
           value={activeTab}
           onChange={(e, newValue) => setActiveTab(newValue)}
           centered
-          indicatorColor="primary"
+          indicatorColor={theme["primary-color"]}
         >
           {tabs.map((tab, index) => (
             <Tab
               key={index}
               label={tab.title}
               style={{
-                color: index === activeTab ? "var(--text-color)" : "var(--inactive-tab-color)",
+                color: index === activeTab ? theme["primary-color"] : theme["primary-color"],
               }}
             />
           ))}
         </Tabs>
 
-        {/* Contenu des onglets */}
         {tabs[activeTab]?.sections.map((section, sectionIndex) => (
-          <Box key={sectionIndex} mt={4}>
-            <h3 style={{ textAlign: "left" }}>{section.title}</h3>
-            <Box
-              display="flex"
-              flexWrap="wrap"
-              justifyContent="flex-start"
-              gap={3}
-              mt={2}
-            >
-              {section.blocks.map((block) => (
-                <DocumentBlock
-                  key={block.id}
-                  id={block.id}
-                  label={block.label}
-                  isRequired={block.required}
-                  onUpload={(file) => handleUpload(block.id, file)}
-                />
-              ))}
-            </Box>
-          </Box>
+          <Accordion
+            key={sectionIndex}
+            expanded={expandedAccordion === sectionIndex}
+            onChange={() =>
+              setExpandedAccordion((prev) =>
+                prev === sectionIndex ? -1 : sectionIndex
+              )
+            }
+            sx={{
+              border: `1px solid ${theme["secondary-color"]}`,
+              backgroundColor: theme["tertiary-color"],
+              margin: "10px 0",
+              borderRadius: "10px",
+            }}
+          >
+            <AccordionSummary expandIcon={<ExpandMoreIcon style={{ color: theme["text-color"] }} />}>
+              <Typography
+                variant="h6"
+                style={{ color: theme["text-color"], display: "flex", alignItems: "center" }}
+              >
+                {section.title}{" "}
+                ({getDocumentLabel(
+                  completionStatus[section.title],
+                  section.blocks.length
+                )})
+                {isSectionComplete(section.title, section.blocks.length) && (
+                  <CheckCircleIcon
+                    style={{
+                      color: "green",
+                      marginLeft: "10px",
+                      verticalAlign: "middle",
+                    }}
+                    titleAccess="Section complète"
+                  />
+                )}
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Box display="flex" flexWrap="wrap" gap={3}>
+                {section.blocks.map((block) => (
+                  <DocumentBlock
+                    key={block.id}
+                    id={block.id}
+                    label={block.label}
+                    isRequired={block.required}
+                    onUpload={(file) =>
+                      handleUpload(section.title, Boolean(file))
+                    }
+                  />
+                ))}
+              </Box>
+            </AccordionDetails>
+          </Accordion>
         ))}
-
-        <Box display="flex" justifyContent="center" mt={4}>
-          <Button variant="contained"  onClick={handleSubmit}>
-            {translate("submit_documents")}
-          </Button>
-        </Box>
       </Box>
     </Box>
   );

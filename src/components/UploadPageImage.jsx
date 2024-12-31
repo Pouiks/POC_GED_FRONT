@@ -8,9 +8,10 @@ const UploadPageImage = ({ theme }) => {
       src={imageSrc}
       alt="Thematic Image"
       style={{
-        width: "100%",
-        height: "100%",
-        objectFit: "cover", // Remplissage proportionnel
+        maxWidth: "100%",
+        overflowX: "hidden",
+        height: "100vh",
+        objectFit: "cover", // Assure un affichage proportionnel
       }}
     />
   );

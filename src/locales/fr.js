@@ -15,4 +15,6 @@ export default {
   attestation_pension: "Attestation de pension",
   documents_for_etudiant: "Justificatif étudiant",
   submit_documents: "Envoyer les documents",
+  browse_file: "Glissez les fichiers",
+  here: "ici"
 };
