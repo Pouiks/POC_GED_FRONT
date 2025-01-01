@@ -16,7 +16,6 @@ export const useTheme = () => {
 const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(lightTheme);
 
-  // Applique le thème en fonction du paramètre de l'URL
   useEffect(() => {
     const brand = getQueryParam("brand");
     if (brand === "uxco") {
@@ -26,10 +25,10 @@ const ThemeProvider = ({ children }) => {
     }
   }, []);
 
-  // Injecte les variables CSS dans le document
   useEffect(() => {
     const root = document.documentElement;
     Object.keys(theme).forEach((key) => {
+      console.log(`Application du style : --${key} = ${theme[key]}`); // Debug
       root.style.setProperty(`--${key}`, theme[key]);
     });
   }, [theme]);

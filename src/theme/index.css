@@ -1,205 +1,122 @@
-/* Styles communs */
+/* Global Styles */
 
-/* Appliquer la couleur de fond à tout le corps */
+/* Variables CSS dynamiques injectées par le thème */
 body {
-    background-color: var(--bg-color);
-    color: var(--text-color); /* Couleur du texte par défaut */
-    margin: 0; /* Supprimer les marges par défaut */
-    padding: 0; /* Supprimer les paddings par défaut */
-  }
-/* Structure commune */
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+
+/* Conteneur général pour les blocs */
 .block-container {
-    display: flex;
-    flex-direction: column;
-    /* align-items: center; */
-    margin: 10px;
-  }
-  
-  .block-label {
-    font-size: var(--label-font-size);
-    margin-bottom: var(--label-margin-bottom);
-    font-weight: var(--text-weight);
-    color: var(--text-color);
-  }
-  
-  .block-required {
-    color: red;
-  }
-  
-  .block {
-    width: var(--block-width);
-    height: var(--block-height);
-    border: 2px solid var(--border-color);
-    border-radius: var(--block-border-radius);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    cursor: pointer;
-    overflow: hidden;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-    background-color: var(--primary-color);
-  }
-  
-  .block-icon {
-    font-size: 3rem;
-    transition: transform 0.3s ease;
-  }
-  
-  .block-icon.hovered {
-    transform: scale(1.5);
-    border: 2px solid black;
-  }
-  .block-error {
-    color: red;
-    font-size: 12px;
-    margin-top: 5px;
-    text-align: center;
-  }
-  
-  .block-input {
-    opacity: 0;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    cursor: pointer;
-  }
-  
-  .block-file-info {
-    display: flex;
-    flex-direction: column;
-    align-items: left;
-    justify-content: center;
-    text-align: center;
-    font-size: var(--file-info-font-size);
-    line-height: var(--file-info-line-height);
-  }
-  
-/* Styles existants pour la croix */
-.close-icon {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    cursor: pointer;
-    color: red;
-    font-size: 1.5rem;
-    transition: color 0.3s ease;
-  
-    /* Ajout pour la mise en avant */
-    z-index: 10; /* Toujours au-dessus des autres éléments */
-    background-color: 'red'; /* Optionnel : améliorer la visibilité */
-    border-radius: 50%; /* Optionnel : pour un effet rond */
-  }
-  
-  /* Effet hover sur la croix */
-  .close-icon:hover {
-    color: darkred;
-  }
-
-  .check-icon {
-    position: absolute;
-    bottom: 10px;
-    right: 10px;
-    color: green;
-    font-size: 24px;
-    display: none; /* Par défaut, cachée */
-    z-index: 10;
-  }
-  
-  .block-file-info + .check-icon {
-    display: block; /* Affiche la coche uniquement si un fichier est uploadé */
-  }
-  
-/* Styles des onglets */
-.MuiTab-root {
-  color: var(--inactive-tab-color); /* Couleur des onglets non sélectionnés */
-}
-
-.MuiTab-root.Mui-selected {
-  color: var(--accent-color); /* Couleur de l'onglet sélectionné */
-}
-
-.MuiTabs-indicator {
-  background-color: var(--accent-color); /* Indicateur de l'onglet actif */
-}
-
-
-.MuiTab-root:hover {
-  color: var(--accent-color); /* Couleur au survol */
-  opacity: 1; /* Augmenter l'opacité au survol */
-  cursor: pointer; /* Ajout du curseur pointeur pour indiquer qu'il est cliquable */
-}
-
-.file-upload-form {
-  width: fit-content;
-  height: fit-content;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--text-color);
-
-  
-}
-.file-upload-label input {
-  display: none;
-}
-.file-upload-label {
-  cursor: pointer;
-  background-color: var(--upload-color);
-  padding: 10px 40px;
-  border-radius: 40px;
-  border: 2px dashed rgb(82, 82, 82);
-  box-shadow: 0px 0px 200px -50px rgba(0, 0, 0, 0.719);
-}
-.file-upload-design {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
+  margin: 10px;
 }
-.browse-button {
-  background-color: var(--upload-background-button-color);
-  padding: 5px 15px;
-  border-radius: 10px;
-  color: var(--upload-background-text-color);
-  transition: all 0.3s;
+
+/* Styles pour les labels des blocs */
+.block-label {
+  font-size: var(--label-font-size);
+  margin-bottom: var(--label-margin-bottom);
+  font-weight: var(--text-weight);
+  color: var(--text-color);
 }
-.browse-button:hover {
-  background-color: rgb(14, 14, 14);
-}
-.block-file-info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-.close-icon {
-  cursor: pointer;
-  color: red;
-}
-.check-icon {
-  color: green;
-}
+
 .block-required {
-  color: red;
+  color: var(--required-color);
 }
-.file-upload-label svg {
-  height: 50px;
-  width: 50px;
-  margin-bottom: 20px;
-  fill: rgb(82, 82, 82);
+
+/* Blocs de drag-and-drop */
+.block {
+  width: var(--block-width);
+  height: var(--block-height);
+  border: 2px dashed var(--secondary-color);
+  border-radius: var(--block-border-radius);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  background-color: var(--blockBackground);
+  text-align: center;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Icônes à l'intérieur des blocs */
+.block-icon {
+  font-size: 3rem;
+  color: var(--icon-color);
   transition: transform 0.3s ease;
 }
 
-.file-upload-label:hover svg {
-  transform: scale(1.1); /* Effet léger de zoom au survol */
+.block-icon.hovered {
+  transform: scale(1.5);
 }
-.MuiButton-contained{
-  background-color: red;
+
+/* Messages d'erreur */
+.block-error {
+  color: var(--error-color);
+  font-size: 12px;
+  margin-top: 5px;
+  text-align: center;
 }
-.variant-containedColor{
-  background-color: red !important;
+
+/* Informations sur les fichiers dans les blocs */
+.block-file-info {
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+  justify-content: center;
+  text-align: center;
+  font-size: var(--file-info-font-size);
+  line-height: var(--file-info-line-height);
+  color: var(--text-color);
+}
+
+/* Boutons pour l'upload */
+.browse-button {
+  background-color: var(--upload-background-button-color);
+  color: var(--upload-background-text-color);
+  padding: 5px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.browse-button:hover {
+  background-color: var(--primary-color);
+}
+
+/* Styles pour les onglets */
+.MuiTab-root {
+  color: var(--inactive-tab-color);
+}
+
+.MuiTab-root.Mui-selected {
+  color: var(--accent-color);
+}
+
+.MuiTabs-indicator {
+  background-color: var(--accent-color);
+}
+
+.MuiTab-root:hover {
+  color: var(--accent-color);
+  cursor: pointer;
+}
+
+/* Styles pour les icônes de succès et d'erreur */
+.check-icon {
+  color: var(--success-color);
+}
+
+.close-icon {
+  color: var(--error-color);
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.close-icon:hover {
+  color: darkred;
 }

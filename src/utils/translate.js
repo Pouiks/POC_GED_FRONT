@@ -1,3 +1,4 @@
+// translate.js
 import fr from "../locales/fr";
 import en from "../locales/en";
 
@@ -26,4 +27,3 @@ export const translate = (key) => {
 
   return translations[normalizedKey] || key;
 };
-
