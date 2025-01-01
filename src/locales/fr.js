@@ -36,6 +36,7 @@ const fr = {
   "size": "Taille",
   "drag_file_here": "Glisser le fichier ici",
   "document_valid": "Document valide",
+  "duplicate_file_error": "Un fichier avec ce nom a déjà été ajouté.",
 
 };
 

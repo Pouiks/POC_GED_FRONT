@@ -5,147 +5,98 @@ import { useTheme } from "../context/ThemeContext";
 import { translate } from "../utils/translate";
 
 const ALLOWED_FILE_TYPES = ["application/pdf", "image/jpeg", "image/jpg", "image/png"];
-const ALLOWED_EXTENSIONS = [".pdf", ".jpeg", ".jpg", ".png"];
 const MAX_FILE_SIZE_MB = 20; // Taille maximale autorisée pour les fichiers
 
-const DocumentBlock = ({ id, label, isRequired, initialFile, onUpload }) => {
+const DocumentBlock = ({ id, label, isRequired, initialFile, onUpload, onDelete, allUploadedFiles }) => {
   const { theme } = useTheme();
   const [uploadedFile, setUploadedFile] = useState(initialFile || null);
-  const [isHovered, setIsHovered] = useState(false);
   const [error, setError] = useState(null);
-  const [isValid, setIsValid] = useState(false); // État de validation du fichier
 
   useEffect(() => {
     if (initialFile) {
       setUploadedFile(initialFile);
-      validateFile(initialFile);
     }
   }, [initialFile]);
 
-  // Fonction de validation complète
   const validateFile = (file) => {
-    if (!file) return false;
-
-    const validMimeTypes = ALLOWED_FILE_TYPES.map((type) => type.toLowerCase());
-    if (!validMimeTypes.includes(file.mimeType.toLowerCase())) {
+    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
       setError(translate("invalid_file_format"));
-      setIsValid(false);
       return false;
     }
-
-    const fileSizeInMB = parseFloat(file.size.split(" ")[0]);
-    if (fileSizeInMB > MAX_FILE_SIZE_MB) {
+    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
       setError(translate("file_too_large"));
-      setIsValid(false);
       return false;
     }
-
+    if (allUploadedFiles.some((f) => f.name === file.name && f.type === file.type)) {
+      setError(translate("duplicate_file_error"));
+      return false;
+    }
     setError(null);
-    setIsValid(true);
     return true;
   };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const fileExtension = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
-
-      if (!ALLOWED_FILE_TYPES.includes(file.type) && !ALLOWED_EXTENSIONS.includes(fileExtension)) {
-        setError(translate("invalid_file_format"));
-        setUploadedFile(null);
-        onUpload(null);
-        return;
-      }
-
-      if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-        setError(translate("file_too_large"));
-        setUploadedFile(null);
-        onUpload(null);
-        return;
-      }
-
-      setError(null);
-      const mimeType = file.type.split("/").pop().toUpperCase();
-      const size =
-        file.size >= 1024 * 1024
-          ? (file.size / (1024 * 1024)).toFixed(2) + " MB"
-          : (file.size / 1024).toFixed(2) + " KB";
-
-      const fileDetails = { name: file.name, mimeType, size };
+    if (file && validateFile(file)) {
+      const fileDetails = {
+        name: file.name,
+        type: file.type,
+        size: `${(file.size / 1024).toFixed(2)} KB`,
+      };
       setUploadedFile(fileDetails);
-      onUpload(fileDetails);
+      onUpload(fileDetails); // Appeler uniquement si le fichier est valide
+    } else {
+      setUploadedFile(null); // Réinitialiser l'état en cas d'erreur
     }
   };
 
   const handleDelete = () => {
+    if (uploadedFile) {
+      onDelete(uploadedFile);
+    }
     setUploadedFile(null);
     setError(null);
-    setIsValid(false);
-    onUpload(null);
   };
 
   const handleDragOver = (e) => {
     e.preventDefault();
-    setIsHovered(true);
-  };
-
-  const handleDragLeave = () => {
-    setIsHovered(false);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
-    setIsHovered(false);
-
     const file = e.dataTransfer.files[0];
-    if (file) {
-      const mimeType = file.type.split("/").pop().toUpperCase();
-      const size =
-        file.size >= 1024 * 1024
-          ? (file.size / (1024 * 1024)).toFixed(2) + " MB"
-          : (file.size / 1024).toFixed(2) + " KB";
-
-      const fileDetails = { name: file.name, mimeType, size };
-      const isValid = validateFile(fileDetails);
-
-      if (isValid) {
-        setUploadedFile(fileDetails);
-        onUpload(fileDetails);
-      } else {
-        setUploadedFile(null);
-        onUpload(null);
-      }
+    if (file && validateFile(file)) {
+      const fileDetails = {
+        name: file.name,
+        type: file.type,
+        size: `${(file.size / 1024).toFixed(2)} KB`,
+      };
+      setUploadedFile(fileDetails);
+      onUpload(fileDetails); // Appeler uniquement si le fichier est valide
+    } else {
+      setUploadedFile(null);
     }
   };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
-      {/* Label du bloc */}
-      <div
-        style={{
-          fontWeight: theme["text-weight"] || "bold",
-          textAlign: "center",
-          color: theme["primary-color"],
-        }}
-      >
+      <div style={{ fontWeight: theme["text-weight"], textAlign: "center", color: theme["primary-color"] }}>
         {label} {isRequired && <span style={{ color: theme["required-color"] }}>*</span>}
       </div>
-      {/* Bloc principal */}
       <div
-        className={`file-upload-form ${isHovered ? "hovered" : ""}`}
+        className={`file-upload-form`}
         onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         style={{
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          border: `2px dashed ${isValid ? "green" : theme["secondary-color"]}`,
+          border: `2px dashed ${uploadedFile ? "green" : theme["secondary-color"]}`,
           padding: "20px",
           borderRadius: theme["block-border-radius"],
-          width: "150px", // Largeur augmentée
-          height: "150px", // Hauteur augmentée
+          width: "250px",
+          height: "200px",
           position: "relative",
           backgroundColor: theme["dragDropBackgroundColor"],
           textAlign: "center",
@@ -154,10 +105,8 @@ const DocumentBlock = ({ id, label, isRequired, initialFile, onUpload }) => {
       >
         {!uploadedFile ? (
           <>
-            <svg viewBox="0 0 640 512" height="150px" style={{ fill: theme["primary-color"] }}>
-              <path
-                d="M144 480C64.5 480 0 415.5 0 336c0-62.8 40.2-116.2 96.2-135.9c-.1-2.7-.2-5.4-.2-8.1c0-88.4 71.6-160 160-160c59.3 0 111 32.2 138.7 80.2C409.9 102 428.3 96 448 96c53 0 96 43 96 96c0 12.2-2.3 23.8-6.4 34.6C596 238.4 640 290.1 640 352c0 70.7-57.3 128-128 128H144zm79-217c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l39-39V392c0 13.3 10.7 24 24 24s24-10.7 24-24V257.9l39 39c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-80-80c-9.4-9.4-24.6-9.4-33.9 0l-80 80z"
-              ></path>
+            <svg viewBox="0 0 640 512" height="100px" style={{ fill: theme["primary-color"] }}>
+              <path d="M144 480C64.5 480 0 415.5 0 336c0-62.8 40.2-116.2 96.2-135.9c-.1-2.7-.2-5.4-.2-8.1c0-88.4 71.6-160 160-160c59.3 0 111 32.2 138.7 80.2C409.9 102 428.3 96 448 96c53 0 96 43 96 96c0 12.2-2.3 23.8-6.4 34.6C596 238.4 640 290.1 640 352c0 70.7-57.3 128-128 128H144zm79-217c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l39-39V392c0 13.3 10.7 24 24 24s24-10.7 24-24V257.9l39 39c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-80-80c-9.4-9.4-24.6-9.4-33.9 0l-80 80z" />
             </svg>
             <p style={{ color: theme["upload-text-color"], fontWeight: "bold" }}>
               {translate("drag_file_here")}
@@ -186,12 +135,11 @@ const DocumentBlock = ({ id, label, isRequired, initialFile, onUpload }) => {
           <div
             style={{
               width: "100%",
-              textAlign: "left",
+              height: "100%",
               display: "flex",
               flexDirection: "column",
               justifyContent: "space-between",
               color: theme["text-color"],
-              height: "100%",
             }}
           >
             <CloseIcon
@@ -208,19 +156,16 @@ const DocumentBlock = ({ id, label, isRequired, initialFile, onUpload }) => {
             <div>
               <strong>{translate("name")}:</strong> {uploadedFile.name}
               <br />
-              <strong>{translate("type")}:</strong> {uploadedFile.mimeType}
+              <strong>{translate("type")}:</strong> {uploadedFile.type}
               <br />
               <strong>{translate("size")}:</strong> {uploadedFile.size}
             </div>
-            <div style={{ display: "flex", alignItems: "center", position: "absolute", bottom: "5px", left: "5px" }}>
-              <span style={{ color: "green", fontWeight: "bold" }}>{translate("document_valid")}</span>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
               <CheckCircleIcon
-                style={{
-                  color: "green",
-                  marginLeft: "5px",
-                }}
+                style={{ color: "green", marginRight: "5px" }}
                 titleAccess={translate("file_uploaded_successfully")}
               />
+              <span style={{ color: "green", fontWeight: "bold" }}>{translate("document_valid")}</span>
             </div>
           </div>
         )}

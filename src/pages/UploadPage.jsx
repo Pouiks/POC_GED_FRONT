@@ -20,128 +20,88 @@ const UploadPage = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [currentLanguage, setCurrentLanguage] = useState("fr");
   const [decodedData, setDecodedData] = useState(null);
-  const [completionStatus, setCompletionStatus] = useState({});
+  const [uploadedFiles, setUploadedFiles] = useState({});
   const [expandedAccordion, setExpandedAccordion] = useState(0);
 
-  useEffect(() => {
-    if (theme) {
-      Object.entries(theme).forEach(([key, value]) => {
-        document.documentElement.style.setProperty(`--${key}`, value);
-      });
-    }
-  }, [theme]);
-
-  const decodeToken = (token) => {
-    const [header, payload] = token.split(".");
-    if (!payload) throw new Error(translate("invalid_token_format"));
-    return JSON.parse(atob(payload));
-  };
-
-  const initializeCompletionStatus = (tabsData) => {
-    const status = {};
+  const initializeUploadedFiles = (tabsData) => {
+    const files = {};
     tabsData.forEach((tab) => {
       tab.sections.forEach((section) => {
-        status[section.title] = 0;
+        files[section.title] = [];
       });
     });
-    return status;
+    return files;
   };
 
   const buildTabsFromData = (data) => {
-    return data.map((locataire, index) => {
-      const locataireId = `Locataire_${index + 1}`;
-      const locataireBlocks = [];
-
-      // Documents du locataire
-      const locataireDocs = Object.entries(locataire.documents || {}).map(([docKey, docValue]) => ({
-        id: `${locataireId}_documents-${docKey}`,
-        label: translate(docKey),
-        required: true,
-        file: docValue || null, // Inclure le fichier initial ici
-      }));
-
-      const locataireSection = {
-        title: translate("locataire_documents"),
-        blocks: locataireDocs,
-      };
-
-      // Autres sections (représentant légal et garants)
-      const representantLegalDocs = Object.entries(locataire.representantLegal?.documents || {}).map(([docKey, docValue]) => ({
-        id: `${locataireId}_representant_legal-${docKey}`,
-        label: translate(docKey),
-        required: true,
-        file: docValue || null, // Inclure le fichier initial ici
-      }));
-
-      const representantLegalSection = {
-        title: translate("representant_legal"),
-        blocks: representantLegalDocs,
-      };
-
-      const garantSections = (locataire.garants || []).map((garant, garantIndex) => {
-        const garantDocs = Object.entries(garant.documents || {}).map(([docKey, docValue]) => ({
-          id: `${locataireId}_garant_${garantIndex + 1}-${docKey}`,
-          label: translate(docKey),
-          required: true,
-          file: docValue || null, // Inclure le fichier initial ici
-        }));
-
-        return {
+    return data.map((locataire, index) => ({
+      title: `${translate("locataire")} ${index + 1}`,
+      sections: [
+        {
+          title: translate("locataire_documents"),
+          blocks: Object.entries(locataire.documents || {}).map(([key, value]) => ({
+            id: `${key}-${index}`,
+            label: translate(key),
+            required: true,
+            file: value || null,
+          })),
+        },
+        {
+          title: translate("representant_legal"),
+          blocks: Object.entries(locataire.representantLegal?.documents || {}).map(([key, value]) => ({
+            id: `${key}-legal-${index}`,
+            label: translate(key),
+            required: true,
+            file: value || null,
+          })),
+        },
+        ...(locataire.garants || []).map((garant, garantIndex) => ({
           title: `${translate("garants")} ${garantIndex + 1}`,
-          blocks: garantDocs,
-        };
-      });
-
-      return {
-        title: `${translate("locataire")} ${index + 1}`,
-        sections: [locataireSection, representantLegalSection, ...garantSections],
-      };
-    });
-  };
-
-
-
-
-  useEffect(() => {
-    const queryString = window.location.search;
-    const urlParams = new URLSearchParams(queryString);
-    const token = urlParams.get("token");
-
-    if (token) {
-      try {
-        const decoded = decodeToken(token);
-        setDecodedData(decoded);
-        const dynamicTabs = buildTabsFromData(decoded.locataires || []);
-        setTabs(dynamicTabs);
-
-        const initialStatus = initializeCompletionStatus(dynamicTabs);
-        setCompletionStatus(initialStatus);
-      } catch (err) {
-        console.error(translate("token_decoding_error"), err);
-      }
-    }
-  }, []);
-
-  const handleLanguageChange = () => {
-    const newLanguage = currentLanguage === "fr" ? "en" : "fr";
-    setLanguage(newLanguage);
-    setCurrentLanguage(newLanguage);
-    if (decodedData) {
-      const updatedTabs = buildTabsFromData(decodedData.locataires || []);
-      setTabs(updatedTabs);
-
-      const updatedStatus = initializeCompletionStatus(updatedTabs);
-      setCompletionStatus(updatedStatus);
-    }
-  };
-
-  const handleUpload = (sectionTitle, isUploaded) => {
-    setCompletionStatus((prev) => ({
-      ...prev,
-      [sectionTitle]: isUploaded
-        ? prev[sectionTitle] + 1
-        : Math.max(prev[sectionTitle] - 1, 0),
+          blocks: Object.entries(garant.documents || {}).map(([key, value]) => ({
+            id: `${key}-garant-${index}-${garantIndex}`,
+            label: translate(key),
+            required: true,
+            file: value || null,
+          })),
+        })),
+      ],
     }));
+  };
+
+  const handleFileUpload = (file, sectionTitle) => {
+    if (!file) return;
+
+    const isDuplicate = uploadedFiles[sectionTitle]?.some(
+      (uploadedFile) => uploadedFile.name === file.name && uploadedFile.type === file.type
+    );
+
+    if (isDuplicate) {
+      alert(translate("duplicate_file_error"));
+      return false;
+    }
+
+    setUploadedFiles((prev) => ({
+      ...prev,
+      [sectionTitle]: [...(prev[sectionTitle] || []), file],
+    }));
+
+    console.log(`Fichier ajouté dans la section "${sectionTitle}" :`, file);
+    return true;
+  };
+
+  const handleFileDelete = (file, sectionTitle) => {
+    setUploadedFiles((prev) => ({
+      ...prev,
+      [sectionTitle]: prev[sectionTitle]?.filter(
+        (uploadedFile) => uploadedFile.name !== file.name
+      ),
+    }));
+
+    console.log(`Fichier supprimé de la section "${sectionTitle}" :`, file);
+  };
+
+  const isSectionComplete = (sectionTitle, totalDocs) => {
+    return (uploadedFiles[sectionTitle]?.length || 0) === totalDocs;
   };
 
   const getDocumentLabel = (filledCount, totalCount) => {
@@ -150,25 +110,52 @@ const UploadPage = () => {
       : `${filledCount}/${totalCount} ${translate("documents_filled")}`;
   };
 
-  const isSectionComplete = (sectionTitle, totalDocs) => {
-    return completionStatus[sectionTitle] === totalDocs;
+  const handleLanguageChange = () => {
+    const newLanguage = currentLanguage === "fr" ? "en" : "fr";
+    setLanguage(newLanguage);
+    setCurrentLanguage(newLanguage);
+
+    if (decodedData) {
+      const tabsData = buildTabsFromData(decodedData.locataires || []);
+      setTabs(tabsData);
+    }
   };
+
+  useEffect(() => {
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const token = urlParams.get("token");
+
+    if (token) {
+      try {
+        const decoded = JSON.parse(atob(token.split(".")[1]));
+        setDecodedData(decoded);
+
+        const tabsData = buildTabsFromData(decoded.locataires || []);
+        setTabs(tabsData);
+
+        const files = initializeUploadedFiles(tabsData);
+        setUploadedFiles(files);
+      } catch (err) {
+        console.error("Erreur lors du décodage du token :", err);
+      }
+    }
+  }, []);
 
   return (
     <Box display="flex" height="100vh">
-      <Box sx={{ flex: "0 0 40%", height: "100vh", position: "sticky", top: 0, overflow: "hidden", backgroundColor: "var(--primary-color)" }}>
+      <Box sx={{ flex: "0 0 40%", height: "100vh", backgroundColor: theme["primary-color"] }}>
         <UploadPageImage theme={theme} />
       </Box>
-
       <Box sx={{ flex: 1, height: "100vh", overflowY: "auto", padding: "20px", backgroundColor: theme["bg-color"] }}>
         <Box display="flex" justifyContent="space-between" mb={2}>
           <CustomButton isLanguageButton={false} onClick={toggleTheme} />
           <CustomButton isLanguageButton={true} currentLanguage={currentLanguage} onLanguageChange={handleLanguageChange} />
         </Box>
 
-        <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)} centered indicatorColor={theme["primary-color"]}>
+        <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)} centered>
           {tabs.map((tab, index) => (
-            <Tab key={index} label={tab.title} style={{ color: theme["primary-color"] }} />
+            <Tab key={index} label={tab.title} />
           ))}
         </Tabs>
 
@@ -177,22 +164,28 @@ const UploadPage = () => {
             key={sectionIndex}
             expanded={expandedAccordion === sectionIndex}
             onChange={() => setExpandedAccordion((prev) => (prev === sectionIndex ? -1 : sectionIndex))}
-            sx={{ border: `1px solid ${theme["secondary-color"]}`, backgroundColor: theme["tertiary-color"], margin: "10px 0", borderRadius: "10px" }}
+            sx={{ marginBottom: "20px" }}
           >
-            <AccordionSummary expandIcon={<ExpandMoreIcon style={{ color: theme["text-color"] }} />}>
-              <Typography variant="h6" style={{ color: theme["text-color"] }}>
-                {section.title} ({getDocumentLabel(completionStatus[section.title], section.blocks.length)})
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography>
+                {section.title} ({getDocumentLabel(uploadedFiles[section.title]?.length || 0, section.blocks.length)})
                 {isSectionComplete(section.title, section.blocks.length) && (
-                  <CheckCircleIcon style={{ color: "green", marginLeft: "10px", verticalAlign: "middle" }} />
+                  <CheckCircleIcon style={{ color: "green", marginLeft: "10px" }} />
                 )}
               </Typography>
             </AccordionSummary>
-            <AccordionDetails>
-              <Box display="flex" flexWrap="wrap" gap={3}>
-                {section.blocks.map((block) => (
-                  <DocumentBlock key={block.id} id={block.id} label={block.label} isRequired={block.required} onUpload={(file) => handleUpload(section.title, Boolean(file))} />
-                ))}
-              </Box>
+            <AccordionDetails sx={{ display: "flex", flexDirection: "row", gap: "20px" }}>
+              {section.blocks.map((block) => (
+                <DocumentBlock
+                  key={block.id}
+                  id={block.id}
+                  label={block.label}
+                  isRequired={block.required}
+                  onUpload={(file) => handleFileUpload(file, section.title)}
+                  onDelete={(file) => handleFileDelete(file, section.title)}
+                  allUploadedFiles={uploadedFiles[section.title] || []}
+                />
+              ))}
             </AccordionDetails>
           </Accordion>
         ))}

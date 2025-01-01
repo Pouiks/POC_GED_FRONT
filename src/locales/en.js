@@ -36,6 +36,7 @@ const en = {
   "size": "Size",
   "drag_file_here": "Drag the file here",
   "document_valid": "Valid document",
+  "duplicate_file_error": "A file with this name has already been added.",
 };
 
 export default en;
