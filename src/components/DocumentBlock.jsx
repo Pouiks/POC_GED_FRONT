@@ -91,7 +91,7 @@ const DocumentBlock = ({ id, label, isRequired, initialFile, onUpload, onDelete,
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
       <div style={{ fontWeight: theme["text-weight"], textAlign: "center", color: theme["primary-color"] }}>
         {label} {isRequired && <span style={{ color: theme["required-color"] }}>*</span>}
       </div>
