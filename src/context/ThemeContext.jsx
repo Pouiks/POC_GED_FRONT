@@ -28,7 +28,6 @@ const ThemeProvider = ({ children }) => {
   useEffect(() => {
     const root = document.documentElement;
     Object.keys(theme).forEach((key) => {
-      console.log(`Application du style : --${key} = ${theme[key]}`); // Debug
       root.style.setProperty(`--${key}`, theme[key]);
     });
   }, [theme]);

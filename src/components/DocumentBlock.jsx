@@ -18,6 +18,13 @@ const DocumentBlock = ({ id, label, isRequired, initialFile, onUpload, onDelete,
     }
   }, [initialFile]);
 
+  useEffect(() => {
+    const syncedFile = allUploadedFiles?.find((f) => f.id === id);
+    if (syncedFile && syncedFile.name !== uploadedFile?.name) {
+      setUploadedFile(syncedFile); // Synchroniser uniquement si nécessaire
+    }
+  }, [allUploadedFiles, id]);
+
   const validateFile = (file) => {
     if (!ALLOWED_FILE_TYPES.includes(file.type)) {
       setError(translate("invalid_file_format"));
@@ -27,7 +34,10 @@ const DocumentBlock = ({ id, label, isRequired, initialFile, onUpload, onDelete,
       setError(translate("file_too_large"));
       return false;
     }
-    if (allUploadedFiles.some((f) => f.name === file.name && f.type === file.type)) {
+    const isDuplicate = allUploadedFiles?.some(
+      (uploadedFile) => uploadedFile.name === file.name && uploadedFile.type === file.type
+    );
+    if (isDuplicate) {
       setError(translate("duplicate_file_error"));
       return false;
     }
@@ -39,6 +49,7 @@ const DocumentBlock = ({ id, label, isRequired, initialFile, onUpload, onDelete,
     const file = e.target.files[0];
     if (file && validateFile(file)) {
       const fileDetails = {
+        id,
         name: file.name,
         type: file.type,
         size: `${(file.size / 1024).toFixed(2)} KB`,
@@ -67,6 +78,7 @@ const DocumentBlock = ({ id, label, isRequired, initialFile, onUpload, onDelete,
     const file = e.dataTransfer.files[0];
     if (file && validateFile(file)) {
       const fileDetails = {
+        id,
         name: file.name,
         type: file.type,
         size: `${(file.size / 1024).toFixed(2)} KB`,
@@ -79,12 +91,12 @@ const DocumentBlock = ({ id, label, isRequired, initialFile, onUpload, onDelete,
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
       <div style={{ fontWeight: theme["text-weight"], textAlign: "center", color: theme["primary-color"] }}>
         {label} {isRequired && <span style={{ color: theme["required-color"] }}>*</span>}
       </div>
       <div
-        className={`file-upload-form`}
+        className="file-upload-form"
         onDragOver={handleDragOver}
         onDrop={handleDrop}
         style={{
@@ -93,14 +105,16 @@ const DocumentBlock = ({ id, label, isRequired, initialFile, onUpload, onDelete,
           justifyContent: "center",
           alignItems: "center",
           border: `2px dashed ${uploadedFile ? "green" : theme["secondary-color"]}`,
-          padding: "20px",
+          padding: "15px", // Réduit la marge interne
           borderRadius: theme["block-border-radius"],
-          width: "250px",
-          height: "200px",
+          width: "180px", // Taille ajustée pour réduire la largeur
+          height: "160px", // Taille ajustée pour réduire la hauteur
           position: "relative",
           backgroundColor: theme["dragDropBackgroundColor"],
           textAlign: "center",
           color: theme["dragDropTextColor"],
+          wordWrap: "break-word", // Permet le retour à la ligne pour le texte long
+          overflowWrap: "break-word",
         }}
       >
         {!uploadedFile ? (

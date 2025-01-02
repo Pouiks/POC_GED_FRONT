@@ -25,9 +25,10 @@ const UploadPage = () => {
 
   const initializeUploadedFiles = (tabsData) => {
     const files = {};
-    tabsData.forEach((tab) => {
+    tabsData.forEach((tab, tabIndex) => {
       tab.sections.forEach((section) => {
-        files[section.title] = [];
+        const sectionKey = `${tabIndex}-${section.title}`;
+        files[sectionKey] = {};
       });
     });
     return files;
@@ -68,11 +69,15 @@ const UploadPage = () => {
     }));
   };
 
-  const handleFileUpload = (file, sectionTitle) => {
+  const handleFileUpload = (file, sectionTitle, blockId) => {
     if (!file) return;
 
-    const isDuplicate = uploadedFiles[sectionTitle]?.some(
-      (uploadedFile) => uploadedFile.name === file.name && uploadedFile.type === file.type
+    if (!uploadedFiles[sectionTitle]) {
+      uploadedFiles[sectionTitle] = {};
+    }
+
+    const isDuplicate = Object.values(uploadedFiles[sectionTitle]).some(
+      (uploadedFile) => uploadedFile?.name === file.name && uploadedFile?.type === file.type
     );
 
     if (isDuplicate) {
@@ -82,26 +87,31 @@ const UploadPage = () => {
 
     setUploadedFiles((prev) => ({
       ...prev,
-      [sectionTitle]: [...(prev[sectionTitle] || []), file],
+      [sectionTitle]: {
+        ...prev[sectionTitle],
+        [blockId]: file,
+      },
     }));
 
     console.log(`Fichier ajouté dans la section "${sectionTitle}" :`, file);
     return true;
   };
 
-  const handleFileDelete = (file, sectionTitle) => {
-    setUploadedFiles((prev) => ({
-      ...prev,
-      [sectionTitle]: prev[sectionTitle]?.filter(
-        (uploadedFile) => uploadedFile.name !== file.name
-      ),
-    }));
+  const handleFileDelete = (file, sectionTitle, blockId) => {
+    setUploadedFiles((prev) => {
+      const updatedSection = { ...prev[sectionTitle] };
+      delete updatedSection[blockId];
+      return {
+        ...prev,
+        [sectionTitle]: updatedSection,
+      };
+    });
 
     console.log(`Fichier supprimé de la section "${sectionTitle}" :`, file);
   };
 
   const isSectionComplete = (sectionTitle, totalDocs) => {
-    return (uploadedFiles[sectionTitle]?.length || 0) === totalDocs;
+    return Object.keys(uploadedFiles[sectionTitle] || {}).length === totalDocs;
   };
 
   const getDocumentLabel = (filledCount, totalCount) => {
@@ -168,22 +178,30 @@ const UploadPage = () => {
           >
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Typography>
-                {section.title} ({getDocumentLabel(uploadedFiles[section.title]?.length || 0, section.blocks.length)})
-                {isSectionComplete(section.title, section.blocks.length) && (
+                {section.title} (
+                {getDocumentLabel(
+                  Object.keys(uploadedFiles[`${activeTab}-${section.title}`] || {}).length,
+                  section.blocks.length
+                )}
+                )
+                {isSectionComplete(`${activeTab}-${section.title}`, section.blocks.length) && (
                   <CheckCircleIcon style={{ color: "green", marginLeft: "10px" }} />
                 )}
               </Typography>
             </AccordionSummary>
-            <AccordionDetails sx={{ display: "flex", flexDirection: "row", gap: "20px" }}>
+            <AccordionDetails sx={{ display: "flex", flexDirection: "row", gap: "20px", flexWrap: "wrap"}}>
               {section.blocks.map((block) => (
                 <DocumentBlock
                   key={block.id}
                   id={block.id}
                   label={block.label}
                   isRequired={block.required}
-                  onUpload={(file) => handleFileUpload(file, section.title)}
-                  onDelete={(file) => handleFileDelete(file, section.title)}
-                  allUploadedFiles={uploadedFiles[section.title] || []}
+                  initialFile={
+                    uploadedFiles[`${activeTab}-${section.title}`]?.[block.id] || null
+                  }
+                  onUpload={(file) => handleFileUpload(file, `${activeTab}-${section.title}`, block.id)}
+                  onDelete={(file) => handleFileDelete(file, `${activeTab}-${section.title}`, block.id)}
+                  allUploadedFiles={Object.values(uploadedFiles[`${activeTab}-${section.title}`] || {})}
                 />
               ))}
             </AccordionDetails>
