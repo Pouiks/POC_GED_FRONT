@@ -163,7 +163,7 @@ const UploadPage = () => {
           <CustomButton isLanguageButton={true} currentLanguage={currentLanguage} onLanguageChange={handleLanguageChange} />
         </Box>
 
-        <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)} centered>
+        <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)} centered style={{ marginBottom: "50px" }}>
           {tabs.map((tab, index) => (
             <Tab key={index} label={tab.title} />
           ))}
